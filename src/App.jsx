@@ -1,6 +1,6 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
-const PROXY_URL = "https://cors-proxy-abcd.onrender.com/fetch?url=";
+const PROXY_URL = "https://speedseo.onrender.com/fetch?url=";
 
 const PROGRESS_STAGES = [
   { message: "Waking up server...", duration: 3000 },
