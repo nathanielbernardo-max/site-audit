@@ -9,9 +9,12 @@ const PROGRESS_STAGES = [
   { message: "Connecting to website...", duration: 4000 },
   { message: "Downloading page content...", duration: 5000 },
   { message: "Analyzing page speed...", duration: 3000 },
-  { message: "Running SEO checks...", duration: 4000 },
+  { message: "Running SEO checks...", duration: 3000 },
   { message: "Checking meta tags & headings...", duration: 3000 },
-  { message: "Evaluating accessibility...", duration: 3000 },
+  { message: "Detecting structured data...", duration: 2000 },
+  { message: "Checking sitemap & robots.txt...", duration: 3000 },
+  { message: "Analyzing keyword optimization...", duration: 3000 },
+  { message: "Evaluating link structure...", duration: 2000 },
   { message: "Generating report...", duration: 5000 },
   { message: "Almost there...", duration: 60000 },
 ];
@@ -33,6 +36,18 @@ const SEO_CHECKS = [
   { id: "lang", label: "HTML Lang Attribute", weight: 5 },
   { id: "favicon", label: "Favicon", weight: 3 },
   { id: "robots", label: "Robots Meta Tag", weight: 2 },
+  { id: "structuredData", label: "Structured Data (Schema.org)", weight: 9 },
+  { id: "https", label: "HTTPS / SSL", weight: 8 },
+  { id: "wordCount", label: "Word Count (300+ words)", weight: 7 },
+  { id: "urlLength", label: "URL Length (under 75 chars)", weight: 4 },
+  { id: "internalLinks", label: "Internal Links", weight: 6 },
+  { id: "externalLinks", label: "External Links", weight: 3 },
+  { id: "sitemapExists", label: "Sitemap.xml", weight: 8 },
+  { id: "robotsTxtExists", label: "Robots.txt", weight: 7 },
+  { id: "keywordTitle", label: "Keyword in Title", weight: 8, keywordRequired: true },
+  { id: "keywordH1", label: "Keyword in H1", weight: 7, keywordRequired: true },
+  { id: "keywordMeta", label: "Keyword in Meta Description", weight: 7, keywordRequired: true },
+  { id: "keywordDensity", label: "Keyword Density (1-3%)", weight: 6, keywordRequired: true },
 ];
 
 async function logToolUsage(email, url) {
@@ -85,7 +100,7 @@ function analyzeSpeed(html, startTime, endTime) {
   return { loadTime, sizeBytes, sizeKB, sizeMB, scripts, stylesheets, inlineStyles, images, iframes, totalResources, score };
 }
 
-function analyzeSEO(html, url) {
+function analyzeSEO(html, url, keyword = "") {
   const results = {};
   const parser = new DOMParser();
   const doc = parser.parseFromString(html, "text/html");
@@ -152,15 +167,123 @@ function analyzeSEO(html, url) {
   const isBlocked = robotsContent.includes("noindex");
   results.robots = { pass: !isBlocked, value: robots ? robotsContent : "Not set", detail: isBlocked ? "Page is set to noindex!" : robots ? `Directives: ${robotsContent}` : "No robots meta (defaults to index,follow)" };
 
+  // Structured Data / Schema.org detection
+  const jsonLdScripts = doc.querySelectorAll('script[type="application/ld+json"]');
+  const microdata = doc.querySelectorAll('[itemscope]');
+  const rdfa = doc.querySelectorAll('[typeof]');
+  const schemaCount = jsonLdScripts.length + microdata.length + rdfa.length;
+  let schemaTypes = [];
+  jsonLdScripts.forEach((s) => {
+    try {
+      const data = JSON.parse(s.textContent);
+      const items = Array.isArray(data) ? data : [data];
+      items.forEach((item) => { if (item["@type"]) schemaTypes.push(item["@type"]); });
+    } catch (e) {}
+  });
+  microdata.forEach((el) => { const t = el.getAttribute("itemtype"); if (t) schemaTypes.push(t.split("/").pop()); });
+  results.structuredData = {
+    pass: schemaCount > 0,
+    value: schemaCount > 0 ? `${schemaCount} found` : "Missing",
+    detail: schemaCount > 0 ? `Types: ${schemaTypes.slice(0, 4).join(", ")}${schemaTypes.length > 4 ? "..." : ""} (JSON-LD: ${jsonLdScripts.length}, Microdata: ${microdata.length})` : "No structured data — add JSON-LD schema for rich search results",
+  };
+
+  // HTTPS check
+  const isHttps = url.startsWith("https://");
+  results.https = { pass: isHttps, value: isHttps ? "Secure" : "Not Secure", detail: isHttps ? "Site uses HTTPS — good for SEO and trust" : "Site not using HTTPS — Google penalizes insecure sites" };
+
+  // Word count (thin content check)
+  const bodyText = doc.body?.textContent || "";
+  const words = bodyText.trim().split(/\s+/).filter((w) => w.length > 0);
+  const wordCount = words.length;
+  results.wordCount = {
+    pass: wordCount >= 300,
+    value: `${wordCount} words`,
+    detail: wordCount < 300 ? `Thin content — aim for 300+ words for SEO` : wordCount < 600 ? "Adequate content length" : "Good content length",
+  };
+
+  // URL length check
+  const urlPath = url.replace(/^https?:\/\//, "");
+  results.urlLength = {
+    pass: urlPath.length <= 75,
+    value: `${urlPath.length} chars`,
+    detail: urlPath.length <= 75 ? "URL is a good length" : "URL is too long — keep under 75 chars for best SEO",
+  };
+
+  // Internal and external link analysis
+  const allLinks = doc.querySelectorAll("a[href]");
+  let internalCount = 0;
+  let externalCount = 0;
+  let noTextLinks = 0;
+  try {
+    const urlObj = new URL(url);
+    const domain = urlObj.hostname;
+    allLinks.forEach((a) => {
+      const href = a.getAttribute("href") || "";
+      const text = a.textContent?.trim() || a.getAttribute("aria-label") || "";
+      if (!text && !a.querySelector("img")) noTextLinks++;
+      if (href.startsWith("http")) {
+        try { new URL(href).hostname === domain ? internalCount++ : externalCount++; } catch (e) { internalCount++; }
+      } else if (href.startsWith("/") || href.startsWith("#") || (!href.startsWith("mailto:") && !href.startsWith("tel:"))) {
+        internalCount++;
+      }
+    });
+  } catch (e) {}
+  results.internalLinks = {
+    pass: internalCount >= 3,
+    value: `${internalCount} links`,
+    detail: internalCount < 3 ? "Too few internal links — add more for better site structure" : `${internalCount} internal links found${noTextLinks > 0 ? ` (${noTextLinks} missing anchor text)` : ""}`,
+  };
+  results.externalLinks = {
+    pass: externalCount >= 1,
+    value: `${externalCount} links`,
+    detail: externalCount === 0 ? "No external links — adding relevant outbound links can help SEO" : `${externalCount} external link(s) found`,
+  };
+
+  // Keyword analysis (only if keyword provided)
+  const kw = keyword.trim().toLowerCase();
+  if (kw) {
+    const titleLower = titleText.toLowerCase();
+    results.keywordTitle = {
+      pass: titleLower.includes(kw),
+      value: titleLower.includes(kw) ? "Found" : "Missing",
+      detail: titleLower.includes(kw) ? `"${kw}" appears in title tag` : `"${kw}" not found in title — add it for better rankings`,
+    };
+
+    const h1Text = h1s.length > 0 ? h1s[0].textContent.trim().toLowerCase() : "";
+    results.keywordH1 = {
+      pass: h1Text.includes(kw),
+      value: h1Text.includes(kw) ? "Found" : "Missing",
+      detail: h1Text.includes(kw) ? `"${kw}" appears in H1` : `"${kw}" not found in H1 heading`,
+    };
+
+    const descLower = descText.toLowerCase();
+    results.keywordMeta = {
+      pass: descLower.includes(kw),
+      value: descLower.includes(kw) ? "Found" : "Missing",
+      detail: descLower.includes(kw) ? `"${kw}" appears in meta description` : `"${kw}" not found in meta description`,
+    };
+
+    const bodyLower = bodyText.toLowerCase();
+    const kwRegex = new RegExp(kw.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "gi");
+    const kwMatches = bodyLower.match(kwRegex) || [];
+    const density = wordCount > 0 ? ((kwMatches.length / wordCount) * 100) : 0;
+    results.keywordDensity = {
+      pass: density >= 1 && density <= 3,
+      value: `${density.toFixed(1)}%`,
+      detail: density === 0 ? `"${kw}" not found in page content` : density < 1 ? `${kwMatches.length} mentions — density too low, aim for 1-3%` : density > 3 ? `${kwMatches.length} mentions — over-optimized, may trigger spam filters` : `${kwMatches.length} mentions — good keyword density`,
+    };
+  }
+
   let totalWeight = 0;
   let earnedWeight = 0;
-  SEO_CHECKS.forEach((check) => {
+  const activeChecks = SEO_CHECKS.filter((check) => !check.keywordRequired || kw);
+  activeChecks.forEach((check) => {
     totalWeight += check.weight;
     if (results[check.id]?.pass) earnedWeight += check.weight;
   });
   const score = Math.round((earnedWeight / totalWeight) * 100);
 
-  return { results, score };
+  return { results, score, keyword: kw };
 }
 
 function ScoreRing({ score, size = 120, label, sublabel }) {
@@ -326,6 +449,7 @@ function ProgressIndicator({ stageIndex }) {
 export default function WebsiteAudit() {
   const [url, setUrl] = useState("");
   const [email, setEmail] = useState("");
+  const [keyword, setKeyword] = useState("");
   const [emailError, setEmailError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -399,7 +523,62 @@ export default function WebsiteAudit() {
       const html = await response.text();
 
       const speed = analyzeSpeed(html, startTime, endTime);
-      const seo = analyzeSEO(html, targetUrl);
+      const seo = analyzeSEO(html, targetUrl, keyword.trim());
+
+      // Async checks: sitemap.xml and robots.txt
+      try {
+        const baseUrl = new URL(targetUrl);
+        const sitemapUrl = `${baseUrl.origin}/sitemap.xml`;
+        const robotsTxtUrl = `${baseUrl.origin}/robots.txt`;
+
+        const [sitemapRes, robotsRes] = await Promise.allSettled([
+          fetch(PROXY_URL + encodeURIComponent(sitemapUrl)),
+          fetch(PROXY_URL + encodeURIComponent(robotsTxtUrl)),
+        ]);
+
+        const sitemapOk = sitemapRes.status === "fulfilled" && sitemapRes.value.ok;
+        let sitemapDetail = "Could not check sitemap";
+        if (sitemapOk) {
+          const sitemapText = await sitemapRes.value.text();
+          const hasSitemapContent = sitemapText.includes("<urlset") || sitemapText.includes("<sitemapindex");
+          seo.results.sitemapExists = {
+            pass: hasSitemapContent,
+            value: hasSitemapContent ? "Found" : "Invalid",
+            detail: hasSitemapContent ? `Valid sitemap found at ${sitemapUrl}` : "File exists but doesn't appear to be a valid sitemap",
+          };
+        } else {
+          seo.results.sitemapExists = { pass: false, value: "Missing", detail: `No sitemap.xml found at ${sitemapUrl} — create one to help search engines crawl your site` };
+        }
+
+        const robotsOk = robotsRes.status === "fulfilled" && robotsRes.value.ok;
+        if (robotsOk) {
+          const robotsText = await robotsRes.value.text();
+          const hasRobotsContent = robotsText.includes("User-agent") || robotsText.includes("user-agent");
+          const hasSitemapRef = robotsText.toLowerCase().includes("sitemap:");
+          seo.results.robotsTxtExists = {
+            pass: hasRobotsContent,
+            value: hasRobotsContent ? "Found" : "Invalid",
+            detail: hasRobotsContent ? `Valid robots.txt found${hasSitemapRef ? " (includes sitemap reference)" : " (no sitemap reference — consider adding one)"}` : "File exists but doesn't appear to be valid",
+          };
+        } else {
+          seo.results.robotsTxtExists = { pass: false, value: "Missing", detail: `No robots.txt found — create one to control how search engines crawl your site` };
+        }
+
+        // Recalculate score with sitemap/robots results
+        const kw = keyword.trim().toLowerCase();
+        const activeChecks = SEO_CHECKS.filter((check) => !check.keywordRequired || kw);
+        let totalWeight = 0;
+        let earnedWeight = 0;
+        activeChecks.forEach((check) => {
+          totalWeight += check.weight;
+          if (seo.results[check.id]?.pass) earnedWeight += check.weight;
+        });
+        seo.score = Math.round((earnedWeight / totalWeight) * 100);
+      } catch (asyncErr) {
+        console.error("Sitemap/robots check failed:", asyncErr);
+        seo.results.sitemapExists = { pass: false, value: "Error", detail: "Could not check sitemap.xml" };
+        seo.results.robotsTxtExists = { pass: false, value: "Error", detail: "Could not check robots.txt" };
+      }
 
       setSpeedResults(speed);
       setSeoResults(seo);
@@ -409,7 +588,7 @@ export default function WebsiteAudit() {
       stopProgressStages();
       setLoading(false);
     }
-  }, [url, email, startProgressStages, stopProgressStages]);
+  }, [url, email, keyword, startProgressStages, stopProgressStages]);
 
   const overallScore = speedResults && seoResults ? Math.round((speedResults.score + seoResults.score) / 2) : null;
 
@@ -505,6 +684,39 @@ export default function WebsiteAudit() {
           </button>
         </div>
 
+        {/* Keyword Input (optional) */}
+        <div style={{ marginTop: 10 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              background: "rgba(255,255,255,0.04)",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 12,
+              padding: "0 16px",
+              transition: "border-color 0.2s",
+            }}
+          >
+            <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 14, marginRight: 8, fontFamily: "'JetBrains Mono', monospace" }}>⊕</span>
+            <input
+              type="text"
+              value={keyword}
+              onChange={(e) => setKeyword(e.target.value)}
+              onKeyDown={(e) => e.key === "Enter" && runAudit()}
+              placeholder="Target keyword (optional) — e.g. plumber boston"
+              style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "white", fontSize: 15, padding: "12px 0", fontFamily: "'DM Sans', sans-serif" }}
+            />
+            {keyword && (
+              <span
+                onClick={() => setKeyword("")}
+                style={{ color: "rgba(255,255,255,0.3)", cursor: "pointer", fontSize: 14, padding: "0 4px" }}
+              >
+                ✕
+              </span>
+            )}
+          </div>
+        </div>
+
         {/* Privacy note */}
         <div style={{ textAlign: "center", marginTop: 8 }}>
           <span style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", fontFamily: "'DM Sans', sans-serif" }}>
@@ -556,7 +768,7 @@ export default function WebsiteAudit() {
                 <div style={{ display: "flex", justifyContent: "center", gap: 48, padding: "24px 0 40px", flexWrap: "wrap" }}>
                   <ScoreRing score={overallScore} size={140} label="Overall" sublabel="Combined score" />
                   <ScoreRing score={speedResults.score} size={110} label="Speed" sublabel={`${speedResults.loadTime.toFixed(0)}ms`} />
-                  <ScoreRing score={seoResults.score} size={110} label="SEO" sublabel={`${Object.values(seoResults.results).filter((r) => r.pass).length}/${SEO_CHECKS.length} passed`} />
+                  <ScoreRing score={seoResults.score} size={110} label="SEO" sublabel={`${Object.values(seoResults.results).filter((r) => r.pass).length}/${SEO_CHECKS.filter((c) => !c.keywordRequired || seoResults.keyword).length} passed`} />
                 </div>
 
                 <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))", gap: 12, marginBottom: 8 }}>
@@ -616,14 +828,28 @@ export default function WebsiteAudit() {
             {activeTab === "seo" && (
               <div>
                 <div style={{ display: "flex", justifyContent: "center", padding: "16px 0 32px" }}>
-                  <ScoreRing score={seoResults.score} size={130} label="SEO Score" sublabel={`${Object.values(seoResults.results).filter((r) => r.pass).length} of ${SEO_CHECKS.length} checks passed`} />
+                  <ScoreRing score={seoResults.score} size={130} label="SEO Score" sublabel={`${Object.values(seoResults.results).filter((r) => r.pass).length} of ${SEO_CHECKS.filter((c) => !c.keywordRequired || seoResults.keyword).length} checks passed`} />
                 </div>
 
-                {SEO_CHECKS.filter((c) => seoResults.results[c.id] && !seoResults.results[c.id].pass).length > 0 && (
+                {/* Keyword section header */}
+                {seoResults.keyword && (
+                  <div style={{ marginBottom: 16, padding: "10px 16px", background: "rgba(0,200,5,0.06)", border: "1px solid rgba(0,200,5,0.15)", borderRadius: 10, fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.6, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 14 }}>🎯</span>
+                    <span>Keyword analysis active for: <strong style={{ color: "#00C805" }}>"{seoResults.keyword}"</strong></span>
+                  </div>
+                )}
+                {!seoResults.keyword && (
+                  <div style={{ marginBottom: 16, padding: "10px 16px", background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, fontSize: 12, color: "rgba(255,255,255,0.3)", lineHeight: 1.6, display: "flex", alignItems: "center", gap: 8 }}>
+                    <span style={{ fontSize: 14 }}>💡</span>
+                    <span>Tip: Enter a target keyword above and re-run to unlock 4 additional keyword optimization checks.</span>
+                  </div>
+                )}
+
+                {SEO_CHECKS.filter((c) => (!c.keywordRequired || seoResults.keyword) && seoResults.results[c.id] && !seoResults.results[c.id].pass).length > 0 && (
                   <div style={{ marginBottom: 16 }}>
                     <div style={{ fontSize: 12, fontWeight: 600, color: "#ef4444", textTransform: "uppercase", letterSpacing: 1.5, padding: "0 16px 8px", fontFamily: "'JetBrains Mono', monospace" }}>Issues Found</div>
                     <div style={{ background: "rgba(239,68,68,0.04)", borderRadius: 12, border: "1px solid rgba(239,68,68,0.1)", overflow: "hidden" }}>
-                      {SEO_CHECKS.filter((c) => seoResults.results[c.id] && !seoResults.results[c.id].pass).map((check) => (
+                      {SEO_CHECKS.filter((c) => (!c.keywordRequired || seoResults.keyword) && seoResults.results[c.id] && !seoResults.results[c.id].pass).map((check) => (
                         <CheckRow key={check.id} check={check} result={seoResults.results[check.id]} />
                       ))}
                     </div>
@@ -633,7 +859,7 @@ export default function WebsiteAudit() {
                 <div>
                   <div style={{ fontSize: 12, fontWeight: 600, color: "#22c55e", textTransform: "uppercase", letterSpacing: 1.5, padding: "0 16px 8px", fontFamily: "'JetBrains Mono', monospace" }}>Passed</div>
                   <div style={{ background: "rgba(34,197,94,0.03)", borderRadius: 12, border: "1px solid rgba(34,197,94,0.08)", overflow: "hidden" }}>
-                    {SEO_CHECKS.filter((c) => seoResults.results[c.id]?.pass).map((check) => (
+                    {SEO_CHECKS.filter((c) => (!c.keywordRequired || seoResults.keyword) && seoResults.results[c.id]?.pass).map((check) => (
                       <CheckRow key={check.id} check={check} result={seoResults.results[check.id]} />
                     ))}
                   </div>
@@ -653,7 +879,7 @@ export default function WebsiteAudit() {
             </div>
           </a>
           <div style={{ color: "rgba(255,255,255,0.15)", fontSize: 11, fontFamily: "'JetBrains Mono', monospace", marginBottom: 12 }}>
-            Free website audit tool • Speed + SEO analysis
+            Free website audit tool • Speed + SEO + Keyword analysis
           </div>
           <a
             href="https://gainwrk.com/website-build.html"
