@@ -227,16 +227,16 @@ function CTABanner({ score }) {
       style={{
         margin: "32px 0",
         padding: "28px 24px",
-        background: "linear-gradient(135deg, rgba(59,130,246,0.1) 0%, rgba(99,102,241,0.08) 100%)",
-        border: "1px solid rgba(99,102,241,0.2)",
+        background: "linear-gradient(135deg, rgba(0,200,5,0.1) 0%, rgba(0,161,4,0.08) 100%)",
+        border: "1px solid rgba(0,200,5,0.2)",
         borderRadius: 16,
         textAlign: "center",
         position: "relative",
         overflow: "hidden",
       }}
     >
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #3b82f6, #6366f1, #8b5cf6)" }} />
-      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", color: "rgba(139,92,246,0.8)", marginBottom: 10, fontFamily: "'JetBrains Mono', monospace" }}>
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: "linear-gradient(90deg, #00C805, #00a104, #00C805)" }} />
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 2, textTransform: "uppercase", color: "#00C805", marginBottom: 10, fontFamily: "'JetBrains Mono', monospace" }}>
         Free Consultation
       </div>
       <h3 style={{ fontSize: 20, fontWeight: 700, color: "white", margin: "0 0 8px", fontFamily: "'Space Grotesk', sans-serif", lineHeight: 1.3 }}>
@@ -251,22 +251,22 @@ function CTABanner({ score }) {
         rel="noopener noreferrer"
         style={{
           display: "inline-block",
-          padding: "12px 32px",
-          background: "linear-gradient(135deg, #3b82f6, #6366f1)",
-          color: "white",
-          fontSize: 14,
-          fontWeight: 600,
+          padding: "14px 36px",
+          background: "#00C805",
+          color: "#000",
+          fontSize: 15,
+          fontWeight: 700,
           borderRadius: 10,
           textDecoration: "none",
-          fontFamily: "'DM Sans', sans-serif",
+          fontFamily: "'Space Grotesk', sans-serif",
           letterSpacing: 0.5,
           transition: "transform 0.2s, box-shadow 0.2s",
-          boxShadow: "0 4px 20px rgba(99,102,241,0.3)",
+          boxShadow: "0 0 20px rgba(0,200,5,0.4)",
         }}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 28px rgba(99,102,241,0.45)"; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(99,102,241,0.3)"; }}
+        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 0 30px rgba(0,200,5,0.6)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 0 20px rgba(0,200,5,0.4)"; }}
       >
-        Get a Professional Website →
+        Upgrade Your Website Now →
       </a>
       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.25)", marginTop: 12 }}>
         Custom-built websites optimized for speed, SEO & conversions
@@ -286,7 +286,7 @@ function ProgressIndicator({ stageIndex }) {
           width: 44,
           height: 44,
           border: "3px solid rgba(255,255,255,0.08)",
-          borderTopColor: "#3b82f6",
+          borderTopColor: "#00C805",
           borderRadius: "50%",
           margin: "0 auto 20px",
           animation: "spin 0.8s linear infinite",
@@ -310,7 +310,7 @@ function ProgressIndicator({ stageIndex }) {
           style={{
             height: "100%",
             width: `${progress}%`,
-            background: "linear-gradient(90deg, #3b82f6, #6366f1)",
+            background: "linear-gradient(90deg, #00C805, #00a104)",
             borderRadius: 2,
             transition: "width 0.8s ease-out",
           }}
@@ -420,15 +420,20 @@ export default function WebsiteAudit() {
   ];
 
   return (
-    <div style={{ minHeight: "100vh", background: "#0a0a0f", color: "white", fontFamily: "'Segoe UI', -apple-system, sans-serif", padding: "0 16px" }}>
+    <div style={{ minHeight: "100vh", background: "#1e1b4b", color: "white", fontFamily: "'Space Grotesk', 'Segoe UI', system-ui, sans-serif", padding: "0 16px" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 
       <div style={{ maxWidth: 800, margin: "0 auto", paddingTop: 48 }}>
         {/* Header */}
         <div style={{ textAlign: "center", marginBottom: 40 }}>
+          <a href="https://gainwrk.com" style={{ textDecoration: "none" }}>
+            <div style={{ fontWeight: 900, fontSize: 32, letterSpacing: -1, marginBottom: 16, color: "#ffffff" }}>
+              G<span style={{ color: "#00C805" }}>AI</span>NWRK
+            </div>
+          </a>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "linear-gradient(135deg, #22c55e, #3b82f6)", boxShadow: "0 0 20px rgba(34,197,94,0.4)" }} />
-            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "rgba(255,255,255,0.5)" }}>Site Audit</span>
+            <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#00C805", boxShadow: "0 0 20px rgba(0,200,5,0.4)" }} />
+            <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "rgba(255,255,255,0.5)" }}>Free Tool</span>
           </div>
           <h1 style={{ fontFamily: "'Space Grotesk', sans-serif", fontSize: 36, fontWeight: 700, margin: 0, background: "linear-gradient(135deg, #ffffff 0%, rgba(255,255,255,0.6) 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent" }}>
             Speed & SEO Scanner
@@ -483,14 +488,14 @@ export default function WebsiteAudit() {
             onClick={runAudit}
             disabled={loading || !url.trim()}
             style={{
-              background: loading ? "rgba(255,255,255,0.05)" : "linear-gradient(135deg, #3b82f6, #6366f1)",
+              background: loading ? "rgba(255,255,255,0.05)" : "#00C805",
               border: "none",
-              color: "white",
+              color: loading ? "white" : "#000",
               padding: "16px 28px",
               fontSize: 14,
-              fontWeight: 600,
+              fontWeight: 700,
               cursor: loading ? "wait" : "pointer",
-              fontFamily: "'DM Sans', sans-serif",
+              fontFamily: "'Space Grotesk', sans-serif",
               letterSpacing: 0.5,
               transition: "opacity 0.2s",
               opacity: !url.trim() ? 0.4 : 1,
@@ -560,8 +565,8 @@ export default function WebsiteAudit() {
                     { label: "Page Size", value: speedResults.sizeBytes > 1048576 ? `${speedResults.sizeMB} MB` : `${speedResults.sizeKB} KB`, color: speedResults.sizeBytes < 200000 ? "#22c55e" : "#eab308" },
                     { label: "Resources", value: speedResults.totalResources, color: speedResults.totalResources < 30 ? "#22c55e" : "#eab308" },
                     { label: "Scripts", value: speedResults.scripts, color: speedResults.scripts < 10 ? "#22c55e" : "#eab308" },
-                    { label: "Images", value: speedResults.images, color: "#3b82f6" },
-                    { label: "Stylesheets", value: speedResults.stylesheets, color: "#8b5cf6" },
+                    { label: "Images", value: speedResults.images, color: "#00C805" },
+                    { label: "Stylesheets", value: speedResults.stylesheets, color: "#00a104" },
                   ].map((stat, i) => (
                     <div key={i} style={{ background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: "16px", border: "1px solid rgba(255,255,255,0.05)" }}>
                       <div style={{ fontSize: 11, color: "rgba(255,255,255,0.35)", textTransform: "uppercase", letterSpacing: 1, marginBottom: 6, fontFamily: "'JetBrains Mono', monospace" }}>{stat.label}</div>
@@ -600,7 +605,7 @@ export default function WebsiteAudit() {
                     </div>
                   ))}
                 </div>
-                <div style={{ marginTop: 16, padding: "12px 16px", background: "rgba(59,130,246,0.06)", border: "1px solid rgba(59,130,246,0.15)", borderRadius: 10, fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
+                <div style={{ marginTop: 16, padding: "12px 16px", background: "rgba(0,200,5,0.06)", border: "1px solid rgba(0,200,5,0.15)", borderRadius: 10, fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
                   <strong style={{ color: "rgba(255,255,255,0.7)" }}>Note:</strong> Speed metrics reflect HTML fetch time through a proxy, not full browser rendering. For Core Web Vitals, use Google PageSpeed Insights.
                 </div>
                 {speedResults.score < 80 && <CTABanner score={speedResults.score} />}
@@ -642,16 +647,35 @@ export default function WebsiteAudit() {
 
         {/* Footer */}
         <div style={{ textAlign: "center", padding: "48px 0 24px" }}>
-          <div style={{ color: "rgba(255,255,255,0.15)", fontSize: 11, fontFamily: "'JetBrains Mono', monospace", marginBottom: 8 }}>
+          <a href="https://gainwrk.com" style={{ textDecoration: "none" }}>
+            <div style={{ fontWeight: 900, fontSize: 22, letterSpacing: -1, marginBottom: 8, color: "rgba(255,255,255,0.3)" }}>
+              G<span style={{ color: "rgba(0,200,5,0.4)" }}>AI</span>NWRK
+            </div>
+          </a>
+          <div style={{ color: "rgba(255,255,255,0.15)", fontSize: 11, fontFamily: "'JetBrains Mono', monospace", marginBottom: 12 }}>
             Free website audit tool • Speed + SEO analysis
           </div>
           <a
             href="https://gainwrk.com/website-build.html"
             target="_blank"
             rel="noopener noreferrer"
-            style={{ color: "rgba(99,102,241,0.5)", fontSize: 11, textDecoration: "none", fontFamily: "'DM Sans', sans-serif" }}
+            style={{
+              display: "inline-block",
+              padding: "10px 24px",
+              background: "#00C805",
+              color: "#000",
+              fontSize: 13,
+              fontWeight: 700,
+              borderRadius: 8,
+              textDecoration: "none",
+              fontFamily: "'Space Grotesk', sans-serif",
+              boxShadow: "0 0 15px rgba(0,200,5,0.3)",
+              transition: "transform 0.2s, box-shadow 0.2s",
+            }}
+            onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 0 25px rgba(0,200,5,0.5)"; }}
+            onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 0 15px rgba(0,200,5,0.3)"; }}
           >
-            Need a better website? Let's build one →
+            Upgrade Your Website Now →
           </a>
         </div>
       </div>
