@@ -1,6 +1,8 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 
 const PROXY_URL = "https://speedseo.onrender.com/fetch?url=";
+const SUPABASE_URL = "https://cnlscravbmdlctsyuzrf.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNubHNjcmF2Ym1kbGN0c3l1enJmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzEyMjUwNTQsImV4cCI6MjA4NjgwMTA1NH0.7qNNpmaoTd24w6W1ycVS58BKUGv7WFnMgd6uYWpfg7o";
 
 const PROGRESS_STAGES = [
   { message: "Waking up server...", duration: 3000 },
@@ -32,6 +34,27 @@ const SEO_CHECKS = [
   { id: "favicon", label: "Favicon", weight: 3 },
   { id: "robots", label: "Robots Meta Tag", weight: 2 },
 ];
+
+async function logToolUsage(email, url) {
+  try {
+    await fetch(`${SUPABASE_URL}/rest/v1/tool_usage`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: SUPABASE_KEY,
+        Authorization: `Bearer ${SUPABASE_KEY}`,
+        Prefer: "return=minimal",
+      },
+      body: JSON.stringify({
+        tool: "seo_audit",
+        email: email,
+        detail: url,
+      }),
+    });
+  } catch (err) {
+    console.error("Failed to log usage:", err);
+  }
+}
 
 function analyzeSpeed(html, startTime, endTime) {
   const loadTime = endTime - startTime;
@@ -302,6 +325,8 @@ function ProgressIndicator({ stageIndex }) {
 
 export default function WebsiteAudit() {
   const [url, setUrl] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailError, setEmailError] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [speedResults, setSpeedResults] = useState(null);
@@ -311,7 +336,7 @@ export default function WebsiteAudit() {
   const stageTimerRef = useRef(null);
   const inputRef = useRef(null);
 
-  // Warm up the proxy on page load so it's ready by the time user types a URL
+  // Warm up the proxy on page load
   useEffect(() => {
     fetch(PROXY_URL.replace("/fetch?url=", "/health")).catch(() => {});
   }, []);
@@ -336,9 +361,23 @@ export default function WebsiteAudit() {
     }
   }, []);
 
+  const isValidEmail = (e) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+
   const runAudit = useCallback(async () => {
     let targetUrl = url.trim();
     if (!targetUrl) return;
+
+    // Validate email
+    if (!email.trim()) {
+      setEmailError("Please enter your email to get your free audit.");
+      return;
+    }
+    if (!isValidEmail(email.trim())) {
+      setEmailError("Please enter a valid email address.");
+      return;
+    }
+    setEmailError("");
+
     if (!targetUrl.startsWith("http")) targetUrl = "https://" + targetUrl;
 
     setLoading(true);
@@ -347,6 +386,9 @@ export default function WebsiteAudit() {
     setSeoResults(null);
     setActiveTab("overview");
     startProgressStages();
+
+    // Log to Supabase
+    logToolUsage(email.trim(), targetUrl);
 
     try {
       const startTime = performance.now();
@@ -367,7 +409,7 @@ export default function WebsiteAudit() {
       stopProgressStages();
       setLoading(false);
     }
-  }, [url, startProgressStages, stopProgressStages]);
+  }, [url, email, startProgressStages, stopProgressStages]);
 
   const overallScore = speedResults && seoResults ? Math.round((speedResults.score + seoResults.score) / 2) : null;
 
@@ -396,7 +438,34 @@ export default function WebsiteAudit() {
           </p>
         </div>
 
-        {/* Input */}
+        {/* Email Input */}
+        <div style={{ marginBottom: 12 }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              background: "rgba(255,255,255,0.04)",
+              border: emailError ? "1px solid rgba(239,68,68,0.5)" : "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 12,
+              padding: "0 16px",
+              transition: "border-color 0.2s",
+            }}
+          >
+            <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 14, marginRight: 8 }}>@</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => { setEmail(e.target.value); setEmailError(""); }}
+              placeholder="Enter your email to get your free audit..."
+              style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: "white", fontSize: 15, padding: "14px 0", fontFamily: "'DM Sans', sans-serif" }}
+            />
+          </div>
+          {emailError && (
+            <div style={{ fontSize: 12, color: "#ef4444", marginTop: 6, paddingLeft: 16, fontFamily: "'DM Sans', sans-serif" }}>{emailError}</div>
+          )}
+        </div>
+
+        {/* URL Input */}
         <div style={{ display: "flex", gap: 0, background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 12, overflow: "hidden" }}>
           <div style={{ flex: 1, display: "flex", alignItems: "center", padding: "0 16px" }}>
             <span style={{ color: "rgba(255,255,255,0.25)", fontSize: 14, marginRight: 8, fontFamily: "'JetBrains Mono', monospace" }}>→</span>
@@ -429,6 +498,13 @@ export default function WebsiteAudit() {
           >
             {loading ? "Scanning..." : "Analyze"}
           </button>
+        </div>
+
+        {/* Privacy note */}
+        <div style={{ textAlign: "center", marginTop: 8 }}>
+          <span style={{ fontSize: 11, color: "rgba(255,255,255,0.2)", fontFamily: "'DM Sans', sans-serif" }}>
+            We'll send your report to this email. No spam, ever.
+          </span>
         </div>
 
         {/* Loading with staged progress */}
