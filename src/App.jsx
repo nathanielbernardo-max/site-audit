@@ -71,8 +71,8 @@ async function logToolUsage(email, url) {
   }
 }
 
-function analyzeSpeed(html, startTime, endTime) {
-  const loadTime = endTime - startTime;
+function analyzeSpeed(html, serverTTFB) {
+  const loadTime = serverTTFB;
   const sizeBytes = new Blob([html]).size;
   const sizeKB = (sizeBytes / 1024).toFixed(1);
   const sizeMB = (sizeBytes / (1024 * 1024)).toFixed(2);
@@ -524,7 +524,11 @@ export default function WebsiteAudit() {
       if (!response.ok) throw new Error(`Failed to fetch (HTTP ${response.status})`);
       const html = await response.text();
 
-      const speed = analyzeSpeed(html, startTime, endTime);
+      // Use server-reported TTFB (actual target site response time), fall back to browser timing
+      const serverTTFB = parseInt(response.headers.get("X-Target-TTFB"), 10);
+      const actualLoadTime = serverTTFB > 0 ? serverTTFB : (endTime - startTime);
+
+      const speed = analyzeSpeed(html, actualLoadTime);
       const seo = analyzeSEO(html, targetUrl, keyword.trim());
 
       // Async checks: sitemap.xml and robots.txt
@@ -974,7 +978,7 @@ export default function WebsiteAudit() {
                   ))}
                 </div>
                 <div style={{ marginTop: 16, padding: "12px 16px", background: "rgba(0,200,5,0.06)", border: "1px solid rgba(0,200,5,0.15)", borderRadius: 10, fontSize: 12, color: "rgba(255,255,255,0.5)", lineHeight: 1.6 }}>
-                  <strong style={{ color: "rgba(255,255,255,0.7)" }}>Note:</strong> Speed metrics reflect HTML fetch time through a proxy, not full browser rendering. For Core Web Vitals, use Google PageSpeed Insights.
+                  <strong style={{ color: "rgba(255,255,255,0.7)" }}>Note:</strong> Response time measures server TTFB (Time to First Byte) — the actual time the target server takes to respond. For full Core Web Vitals, use Google PageSpeed Insights.
                 </div>
                 {speedResults.score < 80 && <CTABanner score={speedResults.score} />}
               </div>
