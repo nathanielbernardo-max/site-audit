@@ -457,6 +457,8 @@ export default function WebsiteAudit() {
   const [seoResults, setSeoResults] = useState(null);
   const [activeTab, setActiveTab] = useState("overview");
   const [stageIndex, setStageIndex] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [menuPanel, setMenuPanel] = useState("main");
   const stageTimerRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -598,18 +600,160 @@ export default function WebsiteAudit() {
     { id: "seo", label: "SEO Audit" },
   ];
 
+  const menuItemStyle = {
+    background: "none", border: "none", color: "#fff",
+    fontWeight: 700, fontSize: "1.3rem", cursor: "pointer",
+    padding: "18px 0", textAlign: "left", width: "100%", textDecoration: "none",
+    borderBottom: "1px solid rgba(255,255,255,0.1)",
+    display: "flex", alignItems: "center", justifyContent: "flex-start", gap: 10,
+    fontFamily: "'Space Grotesk', sans-serif",
+  };
+
+  const menuBackStyle = {
+    color: "#cbd5e1", fontSize: "1.1rem", textTransform: "uppercase", letterSpacing: 1,
+    borderBottom: "none", marginBottom: 15, paddingTop: 0, background: "none", border: "none",
+    cursor: "pointer", textAlign: "left", fontFamily: "'Space Grotesk', sans-serif",
+  };
+
+  const panelTitleStyle = {
+    fontSize: "2rem", fontWeight: 900, marginBottom: 20, color: "#fff",
+    paddingBottom: 10, borderBottom: "2px solid #00C805",
+  };
+
   return (
-    <div style={{ minHeight: "100vh", background: "#1e1b4b", color: "white", fontFamily: "'Space Grotesk', 'Segoe UI', system-ui, sans-serif", padding: "0 16px" }}>
+    <div style={{ minHeight: "100vh", background: "#1e1b4b", color: "white", fontFamily: "'Space Grotesk', 'Segoe UI', system-ui, sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
 
-      <div style={{ maxWidth: 800, margin: "0 auto", paddingTop: 48 }}>
-        {/* Header */}
-        <div style={{ textAlign: "center", marginBottom: 40 }}>
-          <a href="https://gainwrk.com" style={{ textDecoration: "none" }}>
-            <div style={{ fontWeight: 900, fontSize: 32, letterSpacing: -1, marginBottom: 16, color: "#ffffff" }}>
-              G<span style={{ color: "#00C805" }}>AI</span>NWRK
-            </div>
+      {/* ===== SITE HEADER ===== */}
+      <header style={{ background: "#ffffff", padding: "1rem 0", position: "fixed", top: 0, left: 0, right: 0, width: "100%", zIndex: 100, boxShadow: "0 4px 20px rgba(0,0,0,0.1)", borderBottom: "2px solid #00C805" }}>
+        <div style={{ maxWidth: "100%", padding: "0 30px", display: "flex", justifyContent: "space-between", alignItems: "center", position: "relative", minHeight: 50 }}>
+          <button onClick={() => { setMenuOpen(true); setMenuPanel("main"); }} style={{ display: "block", background: "none", border: "none", cursor: "pointer", padding: 0, zIndex: 20 }}>
+            <div style={{ width: 25, height: 3, background: "#1e1b4b", margin: "5px 0", borderRadius: 2 }} />
+            <div style={{ width: 25, height: 3, background: "#1e1b4b", margin: "5px 0", borderRadius: 2 }} />
+            <div style={{ width: 25, height: 3, background: "#1e1b4b", margin: "5px 0", borderRadius: 2 }} />
+          </button>
+          <a href="https://www.gainwrk.com" style={{ fontWeight: 900, fontSize: "1.8rem", color: "#1e1b4b", textDecoration: "none", letterSpacing: -1, position: "absolute", left: "50%", transform: "translateX(-50%)", zIndex: 10, whiteSpace: "nowrap" }}>
+            G<span style={{ color: "#00C805" }}>AI</span>NWRK
           </a>
+          <a href="https://www.gainwrk.com/checkout.html" style={{ position: "relative", zIndex: 20, marginLeft: "auto", display: "inline-block", padding: "0.6rem 1.2rem", borderRadius: 8, fontWeight: 700, textDecoration: "none", background: "#00C805", color: "#000", fontSize: "0.9rem", boxShadow: "0 0 20px rgba(0,200,5,0.4)", transition: "0.3s" }}>
+            Free Trial
+          </a>
+        </div>
+      </header>
+
+      {/* ===== MOBILE MENU ===== */}
+      {menuOpen && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, zIndex: 1999, background: "rgba(0,0,0,0.4)" }} onClick={() => setMenuOpen(false)} />
+      )}
+      <div style={{
+        position: "fixed", top: 0, left: 0, bottom: 0, width: 530, maxWidth: "85%",
+        background: "#1e1b4b", zIndex: 2000, boxShadow: "5px 0 30px rgba(0,0,0,0.5)",
+        borderRight: "1px solid rgba(255,255,255,0.1)", display: menuOpen ? "flex" : "none",
+        flexDirection: "column", overflow: "hidden",
+      }}>
+        <button onClick={() => setMenuOpen(false)} style={{ position: "absolute", top: 20, right: 20, zIndex: 50, fontSize: "2rem", background: "none", border: "none", color: "#fff", cursor: "pointer" }}>✕</button>
+
+        <div style={{ position: "relative", width: "100%", height: "100%", paddingTop: 70 }}>
+
+          {/* Main Panel */}
+          <div style={{
+            position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+            padding: "70px 30px 40px 40px", overflowY: "auto", background: "#1e1b4b",
+            display: "flex", flexDirection: "column", gap: 5,
+            transform: menuPanel === "main" ? "translateX(0)" : "translateX(-30%)",
+            opacity: menuPanel === "main" ? 1 : 0, pointerEvents: menuPanel === "main" ? "auto" : "none",
+            transition: "transform 0.3s ease-in-out, opacity 0.3s",
+            zIndex: menuPanel === "main" ? 10 : 1,
+          }}>
+            <a href="https://www.gainwrk.com/signin.html" style={{ ...menuItemStyle, color: "#00C805", borderBottom: "2px solid #00C805", paddingBottom: 16, marginBottom: 8 }}>👤 My Account</a>
+            <button onClick={() => setMenuPanel("products")} style={{ ...menuItemStyle, justifyContent: "space-between" }}>Products <span style={{ fontSize: "1.35rem", color: "#00C805", fontWeight: 900 }}>›</span></button>
+            <a href="https://www.gainwrk.com/faq.html" style={menuItemStyle}>FAQ</a>
+            <a href="https://www.gainwrk.com/about.html" style={menuItemStyle}>About Us</a>
+            <button onClick={() => setMenuPanel("links")} style={{ ...menuItemStyle, justifyContent: "space-between" }}>Links <span style={{ fontSize: "1.35rem", color: "#00C805", fontWeight: 900 }}>›</span></button>
+          </div>
+
+          {/* Products Panel */}
+          <div style={{
+            position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+            padding: "70px 30px 40px 40px", overflowY: "auto", background: "#1e1b4b",
+            display: "flex", flexDirection: "column", gap: 5,
+            transform: menuPanel === "products" ? "translateX(0)" : "translateX(100%)",
+            opacity: menuPanel === "products" ? 1 : 0, pointerEvents: menuPanel === "products" ? "auto" : "none",
+            transition: "transform 0.3s ease-in-out, opacity 0.3s",
+            zIndex: menuPanel === "products" ? 10 : 1,
+          }}>
+            <button onClick={() => setMenuPanel("main")} style={menuBackStyle}>Main Menu</button>
+            <div style={panelTitleStyle}>Products</div>
+            <button onClick={() => setMenuPanel("leads")} style={{ ...menuItemStyle, justifyContent: "space-between" }}>AI Agent <span style={{ fontSize: "1.35rem", color: "#00C805", fontWeight: 900 }}>›</span></button>
+            <a href="https://www.gainwrk.com/website-build.html" style={menuItemStyle}>Website Build</a>
+            <button onClick={() => setMenuPanel("tools")} style={{ ...menuItemStyle, justifyContent: "space-between" }}>Free Tools <span style={{ fontSize: "1.35rem", color: "#00C805", fontWeight: 900 }}>›</span></button>
+            <a href="https://www.gainwrk.com" style={{ ...menuItemStyle, marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "none", paddingTop: 20, color: "#cbd5e1" }}>Home</a>
+          </div>
+
+          {/* AI Agent Panel */}
+          <div style={{
+            position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+            padding: "70px 30px 40px 40px", overflowY: "auto", background: "#1e1b4b",
+            display: "flex", flexDirection: "column", gap: 5,
+            transform: menuPanel === "leads" ? "translateX(0)" : "translateX(100%)",
+            opacity: menuPanel === "leads" ? 1 : 0, pointerEvents: menuPanel === "leads" ? "auto" : "none",
+            transition: "transform 0.3s ease-in-out, opacity 0.3s",
+            zIndex: menuPanel === "leads" ? 10 : 1,
+          }}>
+            <button onClick={() => setMenuPanel("products")} style={menuBackStyle}>Products</button>
+            <div style={panelTitleStyle}>AI Agent</div>
+            <a href="#" style={menuItemStyle}>For Consultants</a>
+            <a href="#" style={menuItemStyle}>For Realtors</a>
+            <a href="#" style={menuItemStyle}>For Tradesman</a>
+            <a href="https://www.gainwrk.com" style={{ ...menuItemStyle, marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "none", paddingTop: 20, color: "#cbd5e1" }}>Home</a>
+          </div>
+
+          {/* Free Tools Panel */}
+          <div style={{
+            position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+            padding: "70px 30px 40px 40px", overflowY: "auto", background: "#1e1b4b",
+            display: "flex", flexDirection: "column", gap: 5,
+            transform: menuPanel === "tools" ? "translateX(0)" : "translateX(100%)",
+            opacity: menuPanel === "tools" ? 1 : 0, pointerEvents: menuPanel === "tools" ? "auto" : "none",
+            transition: "transform 0.3s ease-in-out, opacity 0.3s",
+            zIndex: menuPanel === "tools" ? 10 : 1,
+          }}>
+            <button onClick={() => setMenuPanel("products")} style={menuBackStyle}>Products</button>
+            <div style={panelTitleStyle}>Free Tools</div>
+            <a href="https://seoaudit.gainwrk.com" style={menuItemStyle}>Speed and SEO Audit</a>
+            <a href="https://www.gainwrk.com/Invoice_tool.html" style={menuItemStyle}>Invoice Generator</a>
+            <a href="https://www.gainwrk.com/business_card.html" style={menuItemStyle}>Business Card Design Tool</a>
+            <a href="https://www.gainwrk.com/calculator.html" style={menuItemStyle}>Missed Revenue Calculator</a>
+            <a href="https://www.gainwrk.com" style={{ ...menuItemStyle, marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "none", paddingTop: 20, color: "#cbd5e1" }}>Home</a>
+          </div>
+
+          {/* Links Panel */}
+          <div style={{
+            position: "absolute", top: 0, left: 0, width: "100%", height: "100%",
+            padding: "70px 30px 40px 40px", overflowY: "auto", background: "#1e1b4b",
+            display: "flex", flexDirection: "column", gap: 5,
+            transform: menuPanel === "links" ? "translateX(0)" : "translateX(100%)",
+            opacity: menuPanel === "links" ? 1 : 0, pointerEvents: menuPanel === "links" ? "auto" : "none",
+            transition: "transform 0.3s ease-in-out, opacity 0.3s",
+            zIndex: menuPanel === "links" ? 10 : 1,
+          }}>
+            <button onClick={() => setMenuPanel("main")} style={menuBackStyle}>Main Menu</button>
+            <div style={panelTitleStyle}>Links</div>
+            <a href="https://www.gainwrk.com/#contact" style={menuItemStyle}>Contact</a>
+            <a href="https://www.gainwrk.com/privacy-policy.html" style={menuItemStyle}>Privacy Policy</a>
+            <a href="https://www.gainwrk.com/terms.html" style={menuItemStyle}>Terms</a>
+            <a href="https://www.gainwrk.com" style={{ ...menuItemStyle, marginTop: "auto", borderTop: "1px solid rgba(255,255,255,0.1)", borderBottom: "none", paddingTop: 20, color: "#cbd5e1" }}>Home</a>
+          </div>
+
+        </div>
+      </div>
+
+      {/* ===== MAIN CONTENT (with top padding for fixed header) ===== */}
+      <div style={{ padding: "0 16px", paddingTop: 82 }}>
+
+      <div style={{ maxWidth: 800, margin: "0 auto", paddingTop: 48 }}>
+        {/* Tool Header */}
+        <div style={{ textAlign: "center", marginBottom: 40 }}>
           <div style={{ display: "inline-flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <div style={{ width: 10, height: 10, borderRadius: "50%", background: "#00C805", boxShadow: "0 0 20px rgba(0,200,5,0.4)" }} />
             <span style={{ fontFamily: "'JetBrains Mono', monospace", fontSize: 11, letterSpacing: 3, textTransform: "uppercase", color: "rgba(255,255,255,0.5)" }}>Free Tool</span>
@@ -738,7 +882,7 @@ export default function WebsiteAudit() {
         {speedResults && seoResults && !loading && (
           <div style={{ marginTop: 32 }}>
             {/* Tabs */}
-            <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 4, marginBottom: 24 }}>
+            <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 4, marginBottom: 24, border: "2px solid #00C805" }}>
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
@@ -747,12 +891,12 @@ export default function WebsiteAudit() {
                     flex: 1,
                     padding: "10px 16px",
                     fontSize: 13,
-                    fontWeight: 500,
+                    fontWeight: activeTab === tab.id ? 700 : 500,
                     fontFamily: "'DM Sans', sans-serif",
-                    background: activeTab === tab.id ? "rgba(255,255,255,0.08)" : "transparent",
-                    border: "none",
+                    background: activeTab === tab.id ? "rgba(0,200,5,0.15)" : "transparent",
+                    border: activeTab === tab.id ? "1px solid rgba(0,200,5,0.4)" : "1px solid transparent",
                     borderRadius: 8,
-                    color: activeTab === tab.id ? "white" : "rgba(255,255,255,0.4)",
+                    color: activeTab === tab.id ? "#00C805" : "rgba(255,255,255,0.4)",
                     cursor: "pointer",
                     transition: "all 0.2s",
                   }}
@@ -873,7 +1017,7 @@ export default function WebsiteAudit() {
 
         {/* Footer */}
         <div style={{ textAlign: "center", padding: "48px 0 24px" }}>
-          <a href="https://gainwrk.com" style={{ textDecoration: "none" }}>
+          <a href="https://www.gainwrk.com" style={{ textDecoration: "none" }}>
             <div style={{ fontWeight: 900, fontSize: 22, letterSpacing: -1, marginBottom: 8, color: "rgba(255,255,255,0.3)" }}>
               G<span style={{ color: "rgba(0,200,5,0.4)" }}>AI</span>NWRK
             </div>
@@ -882,7 +1026,7 @@ export default function WebsiteAudit() {
             Free website audit tool • Speed + SEO + Keyword analysis
           </div>
           <a
-            href="https://gainwrk.com/website-build.html"
+            href="https://www.gainwrk.com/website-build.html"
             target="_blank"
             rel="noopener noreferrer"
             style={{
@@ -905,6 +1049,36 @@ export default function WebsiteAudit() {
           </a>
         </div>
       </div>
+      </div>{/* close content wrapper */}
+
+      {/* ===== SITE FOOTER ===== */}
+      <footer style={{ background: "#ffffff", padding: "4rem 0", borderTop: "2px solid #00C805", color: "#1e1b4b" }}>
+        <div style={{ maxWidth: 1100, margin: "0 auto", padding: "0 20px" }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "2rem" }}>
+            <div>
+              <a href="https://www.gainwrk.com" style={{ fontWeight: 900, fontSize: "1.8rem", color: "#1e1b4b", textDecoration: "none", letterSpacing: -1 }}>
+                G<span style={{ color: "#00C805" }}>AI</span>NWRK
+              </a>
+              <p style={{ opacity: 0.7, marginTop: "1rem", color: "#475569" }}>Your 24/7 AI sales agent.<br />Built for your business.</p>
+            </div>
+            <div>
+              <h4 style={{ color: "#1e1b4b", marginTop: 0, fontSize: "1.1rem", marginBottom: "1rem", fontWeight: 800 }}>Contact Us</h4>
+              <p style={{ color: "#475569", marginBottom: "0.5rem" }}><strong>Email:</strong> <a href="mailto:support@gainwrk.com" style={{ color: "#475569", textDecoration: "none", display: "inline" }}>support@gainwrk.com</a></p>
+              <p style={{ color: "#475569", marginBottom: "0.5rem" }}><strong>Phone:</strong> <a href="tel:18776007179" style={{ color: "#475569", textDecoration: "none", display: "inline" }}>1-877-600-7179</a></p>
+              <p style={{ color: "#475569" }}><strong>Address:</strong><br />517 Middle Road<br />Swansea, MA 02777</p>
+            </div>
+            <div>
+              <h4 style={{ color: "#1e1b4b", marginTop: 0, fontSize: "1.1rem", marginBottom: "1rem", fontWeight: 800 }}>Legal</h4>
+              <p><a href="https://www.gainwrk.com/privacy-policy.html" style={{ color: "#475569", textDecoration: "none", display: "block", marginBottom: "0.5rem", fontWeight: 500 }}>Privacy Policy</a></p>
+              <p><a href="https://www.gainwrk.com/terms.html" style={{ color: "#475569", textDecoration: "none", display: "block", marginBottom: "0.5rem", fontWeight: 500 }}>Terms of Service</a></p>
+            </div>
+          </div>
+          <div style={{ borderTop: "1px solid #e2e8f0", marginTop: "2rem", paddingTop: "2rem", textAlign: "center", opacity: 0.6, color: "#1e1b4b" }}>
+            © 2026 GAINWRK. All rights reserved.
+          </div>
+        </div>
+      </footer>
+
     </div>
   );
 }
