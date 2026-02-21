@@ -623,6 +623,16 @@ export default function WebsiteAudit() {
   return (
     <div style={{ minHeight: "100vh", background: "#1e1b4b", color: "white", fontFamily: "'Space Grotesk', 'Segoe UI', system-ui, sans-serif" }}>
       <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@400;500;600;700&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+      <style>{`
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover,
+        input:-webkit-autofill:focus {
+          -webkit-box-shadow: 0 0 0 1000px rgba(30,27,75,1) inset !important;
+          -webkit-text-fill-color: #ffffff !important;
+          transition: background-color 5000s ease-in-out 0s;
+          caret-color: white;
+        }
+      `}</style>
 
       {/* ===== SITE HEADER ===== */}
       <header style={{ background: "#ffffff", padding: "1rem 0", position: "fixed", top: 0, left: 0, right: 0, width: "100%", zIndex: 100, boxShadow: "0 4px 20px rgba(0,0,0,0.1)", borderBottom: "2px solid #00C805" }}>
@@ -882,10 +892,11 @@ export default function WebsiteAudit() {
         {speedResults && seoResults && !loading && (
           <div style={{ marginTop: 32 }}>
             {/* Tabs */}
-            <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 4, marginBottom: 24, border: "2px solid #00C805" }}>
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
+            <div style={{ display: "flex", gap: 0, background: "rgba(255,255,255,0.03)", borderRadius: 10, padding: 4, marginBottom: 24, border: "2px solid #00C805" }}>
+              {tabs.map((tab, idx) => (
+                <div key={tab.id} style={{ display: "contents" }}>
+                  {idx > 0 && <div style={{ width: 2, background: "#00C805", borderRadius: 1, margin: "4px 0" }} />}
+                  <button
                   onClick={() => setActiveTab(tab.id)}
                   style={{
                     flex: 1,
@@ -903,6 +914,7 @@ export default function WebsiteAudit() {
                 >
                   {tab.label}
                 </button>
+                </div>
               ))}
             </div>
 
@@ -1065,7 +1077,7 @@ export default function WebsiteAudit() {
               <h4 style={{ color: "#1e1b4b", marginTop: 0, fontSize: "1.1rem", marginBottom: "1rem", fontWeight: 800 }}>Contact Us</h4>
               <p style={{ color: "#475569", marginBottom: "0.5rem" }}><strong>Email:</strong> <a href="mailto:support@gainwrk.com" style={{ color: "#475569", textDecoration: "none", display: "inline" }}>support@gainwrk.com</a></p>
               <p style={{ color: "#475569", marginBottom: "0.5rem" }}><strong>Phone:</strong> <a href="tel:18776007179" style={{ color: "#475569", textDecoration: "none", display: "inline" }}>1-877-600-7179</a></p>
-              <p style={{ color: "#475569" }}><strong>Address:</strong><br />517 Middle Road<br />Swansea, MA 02777</p>
+              <p style={{ color: "#475569" }}><strong>Address:</strong><br />517 Pearse Rd<br />Swansea, MA 02777</p>
             </div>
             <div>
               <h4 style={{ color: "#1e1b4b", marginTop: 0, fontSize: "1.1rem", marginBottom: "1rem", fontWeight: 800 }}>Legal</h4>
